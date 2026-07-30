@@ -1,0 +1,107 @@
+[
+  {
+    "instance_id": "i-87b884ef2b05",
+    "anomaly_type": "cpu_spike",
+    "start_date": "2026-06-21",
+    "end_date": "2026-06-22",
+    "description": "CPU spike anomaly: cpu_utilization_pct jumped to 95-100% on instance i-87b884ef2b05."
+  },
+  {
+    "instance_id": "i-624bdc42268e",
+    "anomaly_type": "cpu_spike",
+    "start_date": "2026-06-17",
+    "end_date": "2026-06-18",
+    "description": "CPU spike anomaly: cpu_utilization_pct jumped to 95-100% on instance i-624bdc42268e."
+  },
+  {
+    "instance_id": "i-668b945c388c",
+    "anomaly_type": "cpu_spike",
+    "start_date": "2026-06-01",
+    "end_date": "2026-06-02",
+    "description": "CPU spike anomaly: cpu_utilization_pct jumped to 95-100% on instance i-668b945c388c."
+  },
+  {
+    "instance_id": "i-cad1d4be7156",
+    "anomaly_type": "memory_leak",
+    "start_date": "2026-05-17",
+    "end_date": "2026-05-21",
+    "description": "Memory leak anomaly: memory_utilization_pct increased steadily by 5%/day for 5 days on instance i-cad1d4be7156."
+  },
+  {
+    "instance_id": "i-25ef68f3f135",
+    "anomaly_type": "memory_leak",
+    "start_date": "2026-06-29",
+    "end_date": "2026-07-03",
+    "description": "Memory leak anomaly: memory_utilization_pct increased steadily by 5%/day for 5 days on instance i-25ef68f3f135."
+  },
+  {
+    "instance_id": "i-e36da64012ca",
+    "anomaly_type": "memory_leak",
+    "start_date": "2026-05-09",
+    "end_date": "2026-05-13",
+    "description": "Memory leak anomaly: memory_utilization_pct increased steadily by 5%/day for 5 days on instance i-e36da64012ca."
+  },
+  {
+    "instance_id": "i-8086bef9572e",
+    "anomaly_type": "network_exfiltration",
+    "start_date": "2026-05-27",
+    "end_date": "2026-05-27",
+    "description": "Network exfiltration anomaly: outbound network traffic spiked to 20x normal on instance i-8086bef9572e."
+  },
+  {
+    "instance_id": "i-499746774938",
+    "anomaly_type": "network_exfiltration",
+    "start_date": "2026-05-26",
+    "end_date": "2026-05-26",
+    "description": "Network exfiltration anomaly: outbound network traffic spiked to 20x normal on instance i-499746774938."
+  },
+  {
+    "instance_id": "i-aad150039eca",
+    "anomaly_type": "network_exfiltration",
+    "start_date": "2026-06-16",
+    "end_date": "2026-06-16",
+    "description": "Network exfiltration anomaly: outbound network traffic spiked to 20x normal on instance i-aad150039eca."
+  },
+  {
+    "instance_id": "i-dd55d8b77ad5",
+    "anomaly_type": "brute_force",
+    "start_date": "2026-06-02",
+    "end_date": "2026-06-02",
+    "description": "Brute force anomaly: high failed logins and unauthorized access attempt event on instance i-dd55d8b77ad5."
+  },
+  {
+    "instance_id": "i-7b91901a159a",
+    "anomaly_type": "brute_force",
+    "start_date": "2026-06-19",
+    "end_date": "2026-06-19",
+    "description": "Brute force anomaly: high failed logins and unauthorized access attempt event on instance i-7b91901a159a."
+  },
+  {
+    "instance_id": "i-d54167cc2485",
+    "anomaly_type": "brute_force",
+    "start_date": "2026-06-28",
+    "end_date": "2026-06-28",
+    "description": "Brute force anomaly: high failed logins and unauthorized access attempt event on instance i-d54167cc2485."
+  },
+  {
+    "instance_id": "i-33b0afc60d0a",
+    "anomaly_type": "misconfiguration",
+    "start_date": "2026-05-22",
+    "end_date": "2026-05-22",
+    "description": "Misconfiguration anomaly: instance i-33b0afc60d0a port exposure flipped to internet_exposed=True."
+  },
+  {
+    "instance_id": "i-06b1446f5313",
+    "anomaly_type": "misconfiguration",
+    "start_date": "2026-06-25",
+    "end_date": "2026-06-25",
+    "description": "Misconfiguration anomaly: instance i-06b1446f5313 port exposure flipped to internet_exposed=True."
+  },
+  {
+    "instance_id": "i-8719bee7f8a9",
+    "anomaly_type": "misconfiguration",
+    "start_date": "2026-05-06",
+    "end_date": "2026-05-06",
+    "description": "Misconfiguration anomaly: instance i-8719bee7f8a9 port exposure flipped to internet_exposed=True."
+  }
+]

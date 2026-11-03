@@ -1,0 +1,18 @@
+[run]
+source =
+    analytics
+    dashboard
+    data_generator
+    genai
+    warehouse
+omit =
+    tests/*
+    docs/*
+    .python311/*
+    .venv/*
+    */__pycache__/*
+
+[report]
+show_missing = true
+skip_covered = false
+precision = 0

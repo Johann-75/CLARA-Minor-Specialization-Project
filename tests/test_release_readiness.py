@@ -1,6 +1,7 @@
 """Release and deployment readiness checks for the submission repository."""
 
 from pathlib import Path
+import configparser
 import subprocess
 
 
@@ -48,4 +49,18 @@ def test_streamlit_deployment_files_exist_without_embedded_secrets():
     assert python_version == "3.11"
     assert "headless = true" in config
     assert "GEMINI_API_KEY" not in config
+
+
+def test_coverage_configuration_targets_runtime_application_packages():
+    config_path = ROOT / ".coveragerc"
+    parser = configparser.ConfigParser()
+    assert parser.read(config_path, encoding="utf-8") == [str(config_path)]
+
+    sources = {line.strip() for line in parser["run"]["source"].splitlines() if line.strip()}
+    omit = {line.strip() for line in parser["run"]["omit"].splitlines() if line.strip()}
+
+    assert sources == {"analytics", "dashboard", "data_generator", "genai", "warehouse"}
+    assert "tests/*" in omit
+    assert "docs/*" in omit
+    assert ".python311/*" in omit
 

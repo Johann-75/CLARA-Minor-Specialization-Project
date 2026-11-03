@@ -1,8 +1,38 @@
+# Virtual environments
 venv/
+.venv/
+env/
+.env/
+.python311/
+.python311-embed.zip
+.tmp_pip/
+.superpowers/
+
+# Python bytecode & cache
 __pycache__/
-*.pyc
-.env
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Test & coverage artifacts
+.coverage
+.coverage.*
+htmlcov/
+*.cover
+streamlit.stdout.log
+streamlit.stderr.log
+
+# Database files
 *.db
+!clara.db
+clara.db.live_backup
+
+# Generated data artifacts (preserve anomaly_manifest.json and .gitkeep)
 data/synthetic/*.csv
 data/exports/*
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
 .streamlit/secrets.toml

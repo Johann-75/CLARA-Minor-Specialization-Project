@@ -64,3 +64,43 @@ def test_coverage_configuration_targets_runtime_application_packages():
     assert "docs/*" in omit
     assert ".python311/*" in omit
 
+
+def test_evaluator_markdown_matches_verified_submission_metrics():
+    documents = [
+        ROOT / "README.md",
+        ROOT / "docs" / "final" / "PROJECT_OVERVIEW.md",
+        ROOT / "docs" / "final" / "DEMO_GUIDE.md",
+        ROOT / "docs" / "final" / "INSTALLATION_GUIDE.md",
+        ROOT / "docs" / "final" / "VIVA_QUESTIONS_AND_ANSWERS.md",
+        ROOT / "docs" / "final" / "CLARA_Presentation_Script.md",
+        ROOT / "docs" / "final" / "screenshots" / "README.md",
+    ]
+    combined = "\n".join(path.read_text(encoding="utf-8") for path in documents)
+
+    banned = [
+        r"c:\Users\Nandan Murali",
+        "python -m warehouse.db",
+        "100 AWS EC2, 100 Azure VM, 100 GCP Compute Engine",
+        "$220.87 in actionable monthly cost waste",
+        "$220.87 actionable monthly waste",
+        "Actionable Cost Waste: $220.87",
+        "75 Passing Tests, 80% Statement Coverage",
+        "80% total statement coverage",
+        "80% Total Statement Coverage",
+        "Date: [Day Month Year]",
+    ]
+    for stale_claim in banned:
+        assert stale_claim not in combined
+
+    required = [
+        "AWS 155 / Azure 88 / GCP 57",
+        "15 injected",
+        "17 predicted",
+        "$184.58",
+        "$220.87",
+        "67%",
+        "November 3, 2026",
+    ]
+    for verified_claim in required:
+        assert verified_claim in combined
+

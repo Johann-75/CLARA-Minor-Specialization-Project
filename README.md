@@ -42,7 +42,7 @@ CLARA resolves this trilemma by unifying multi-cloud telemetry, explainable mach
 |                                      CLARA 4-TIER ARCHITECTURE                                    |
 +---------------------------------------------------------------------------------------------------+
 |  1. INGESTION LAYER                                                                               |
-|     • 300 Multi-Cloud Instances (100 AWS EC2, 100 Azure VM, 100 GCP Compute Engine)               |
+|     • 300 Multi-Cloud Instances (AWS 155 / Azure 88 / GCP 57 in the active database)              |
 |     • 90-Day Telemetry Window (27,000 metrics records with diurnal patterns & noise)              |
 |     • 15 Injected Anomaly Scenarios (cpu_spike, brute_force, network_exfil, misconfig, memory_leak)|
 +---------------------------------------------------------------------------------------------------+
@@ -60,7 +60,7 @@ CLARA resolves this trilemma by unifying multi-cloud telemetry, explainable mach
 |  3. ANALYTICS & RISK SCORING ENGINES                                                              |
 |     • Multi-Modal Anomaly Detector: Isolation Forest + 11 engineered rolling time-series features |
 |       (Precision: 82.35%, Recall: 93.33%, F1: 0.8750 on isolated ground-truth corpus)             |
-|     • FinOps Rightsizing: K-Means clustering (k=3), isolates $220.87 actionable monthly waste     |
+|     • FinOps Rightsizing: K-Means clustering (k=3), $184.58 cost savings; $220.87 total savings   |
 |     • Security Posture Scorer: Deterministic scoring on observable encryption, IAM, exposure,     |
 |       vulnerability-age and security-event indicators (0-100)                                     |
 |     • Composite Risk: 0.50*Security + 0.30*Anomaly + 0.20*CostWaste (Tiers: Critical, High, Low) |
@@ -87,7 +87,7 @@ CLARA resolves this trilemma by unifying multi-cloud telemetry, explainable mach
 | **Category Detection Breadth** | All 5 categories with ≥1 hit | **5 / 5 categories detected (100%)** | **PASSED** |
 | **Honest Recall Breakdown** | Transparent per-type reporting | `brute_force`: 3/3 (100%), `cpu_spike`: 3/3 (100%), `network_exfil`: 3/3 (100%), `misconfig`: 3/3 (100%), `memory_leak`: 2/3 (66.7%) | **VERIFIED** |
 | **Manifest Isolation** | Zero access to manifest labels | Manifest held out during training & inference | **PASSED** |
-| **FinOps Cost Waste** | Quantified monthly waste | **$220.87/month** across verified recommendations | **VERIFIED** |
+| **Recommendation Savings** | Quantified monthly opportunity | **$184.58/month cost-only; $220.87/month across all recommendation types** | **VERIFIED** |
 | **GenAI SDK & Endpoint**| Modern SDK (not deprecated) | `google-genai==2.34.0`, `gemini-3.8-flash` | **VERIFIED** |
 | **Schema Validation** | 100% Pydantic conformance | 10/10 Live Gemini recommendations validated | **VERIFIED** |
 | **Test Suite Pass Rate**| 100% Passing Tests | **75 / 75 Tests Passed** | **PASSED** |
@@ -100,7 +100,7 @@ CLARA resolves this trilemma by unifying multi-cloud telemetry, explainable mach
 
 ### Step 1: Activate Environment & Install Dependencies
 ```powershell
-cd "c:\Users\Nandan Murali\Downloads\CLARA-Minor-Specialization-Project-main\CLARA-Final-Project"
+cd "path\to\CLARA-Minor-Specialization-Project"
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
@@ -144,7 +144,7 @@ python -m analytics.evaluate_anomaly_model
 
 | Stage | Script / Command | Description |
 | :--- | :--- | :--- |
-| **Stage 1: Warehouse Verification** | `python -m warehouse.db` | Verifies database tables in `clara.db`. |
+| **Stage 1: Warehouse Verification** | `python -c "import duckdb; print(duckdb.connect('clara.db', read_only=True).execute('SHOW TABLES').fetchall())"` | Verifies tables in `clara.db` without modifying it. |
 | **Stage 2: Analytics Training** | `python -m analytics.run_all_models` | Re-trains Isolation Forest, fits K-Means rightsizing, and calculates posture scores. |
 | **Stage 3: Recommendation Orchestrator** | `python -m genai.run_recommendations` | Triages candidates and runs `gemini-3.8-flash` (or deterministic offline fallback). |
 | **Stage 4: Anomaly Model Evaluation** | `python -m analytics.evaluate_anomaly_model` | Evaluates detector performance against isolated `anomaly_manifest.json`. |
@@ -192,7 +192,7 @@ CLARA-Final-Project/
 ├── dashboard/                       # Multi-page Streamlit BI application
 │   ├── app.py                       # Application entry point
 │   ├── pages/
-│   │   ├── 1_Overview.py            # Fleet KPIs ($220.87 waste, 15 anomalies)
+│   │   ├── 1_Overview.py            # Fleet KPIs ($184.58 cost-only / $220.87 all recommendation savings)
 │   │   ├── 2_Security_Analysis.py   # Forensic vulnerability & exposure breakdown
 │   │   ├── 3_Cost_Analysis.py       # FinOps rightsizing scatter plots & waste table
 │   │   └── 4_Recommendations.py     # AI cards with Gemini vs Offline provenance badges

@@ -5,7 +5,8 @@ def metric_card(
     value, 
     delta=None, 
     format_as_currency: bool = False, 
-    format_as_percent: bool = False
+    format_as_percent: bool = False,
+    help_text: str = None
 ):
     """
     A thin, standardized wrapper helper around st.metric that adds consistent formatting
@@ -25,4 +26,4 @@ def metric_card(
         except (ValueError, TypeError):
             formatted_value = f"{value}%"
             
-    st.metric(label=label, value=formatted_value, delta=delta)
+    st.metric(label=label, value=formatted_value, delta=delta, help=help_text)

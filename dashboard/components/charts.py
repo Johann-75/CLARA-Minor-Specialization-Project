@@ -2,14 +2,16 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
-
-# Consistent Dashboard Color Scheme
-COLOR_CRITICAL = "#EF4444"
-COLOR_HIGH = "#F59E0B"
-COLOR_MEDIUM = "#EAB308"
-COLOR_LOW = "#22C55E"
-COLOR_PRIMARY = "#0D9488"
-COLOR_DARK = "#0D1B2A"
+from dashboard.utils.risk_tiers import (
+    COLOR_CRITICAL,
+    COLOR_HIGH,
+    COLOR_MEDIUM,
+    COLOR_LOW,
+    COLOR_PRIMARY,
+    COLOR_DARK,
+    COLOR_MUTED,
+    TIER_COLORS
+)
 
 def check_empty(df: pd.DataFrame, title: str) -> tuple[go.Figure, bool]:
     """
@@ -18,26 +20,28 @@ def check_empty(df: pd.DataFrame, title: str) -> tuple[go.Figure, bool]:
     if df is None or df.empty:
         fig = go.Figure()
         fig.update_layout(
-            title=title,
+            title=dict(text=title, font=dict(size=14, color=COLOR_DARK)),
             xaxis={"visible": False},
             yaxis={"visible": False},
             annotations=[{
-                "text": "No data available in this view",
+                "text": "No data available for the selected filters",
                 "xref": "paper",
                 "yref": "paper",
                 "showarrow": False,
-                "font": {"size": 16, "color": "#64748b"}
+                "font": {"size": 15, "color": COLOR_MUTED}
             }],
-            template="plotly_white"
+            template="plotly_white",
+            margin=dict(l=20, r=20, t=50, b=20)
         )
         return fig, True
     return None, False
 
 def risk_distribution_pie(df: pd.DataFrame) -> go.Figure:
     """
-    Plots overall risk category distribution counts.
+    Plots operational risk category distribution counts (Critical, High, Medium, Low).
     """
-    fig_empty, is_empty = check_empty(df, "Overall Risk Distribution")
+    title = "Project-Defined Operational Risk Distribution"
+    fig_empty, is_empty = check_empty(df, title)
     if is_empty:
         return fig_empty
         
@@ -45,47 +49,63 @@ def risk_distribution_pie(df: pd.DataFrame) -> go.Figure:
         df, 
         values="count", 
         names="risk_category", 
-        hole=0.4, 
-        title="Overall Risk Distribution",
+        hole=0.45, 
+        title=title,
         color="risk_category",
-        color_discrete_map={
-            "Critical": COLOR_CRITICAL,
-            "High": COLOR_HIGH,
-            "Medium": COLOR_MEDIUM,
-            "Low": COLOR_LOW
-        }
+        color_discrete_map=TIER_COLORS,
+        category_orders={"risk_category": ["Critical", "High", "Medium", "Low", "Unknown"]}
     )
-    fig.update_layout(template="plotly_white", margin=dict(l=20, r=20, t=40, b=20))
+    fig.update_traces(
+        textposition="inside",
+        textinfo="percent+label",
+        hovertemplate="<b>%{label}</b><br>Instances: %{value}<br>Share: %{percent}<extra></extra>"
+    )
+    fig.update_layout(
+        template="plotly_white", 
+        margin=dict(l=20, r=20, t=50, b=20),
+        legend=dict(orientation="h", yanchor="bottom", y=-0.15, xanchor="center", x=0.5)
+    )
     return fig
 
 def cost_trend_line(df: pd.DataFrame) -> go.Figure:
     """
-    Plots total cost trends over time.
+    Plots fleet daily cost trends over the past 30 days.
     """
-    fig_empty, is_empty = check_empty(df, "Daily Spend Trend ($)")
+    title = "Fleet Daily Spend Trend (Last 30 Days)"
+    fig_empty, is_empty = check_empty(df, title)
     if is_empty:
         return fig_empty
         
-    fig = px.line(df, x="date", y="daily_cost", title="Daily Spend Trend ($)")
-    fig.update_traces(line_color=COLOR_PRIMARY, line_width=2.5)
+    fig = px.line(
+        df, 
+        x="date", 
+        y="daily_cost", 
+        title=title,
+        labels={"date": "Date", "daily_cost": "Daily Spend ($)"}
+    )
+    fig.update_traces(
+        line=dict(color=COLOR_PRIMARY, width=2.5),
+        hovertemplate="Date: %{x|%Y-%m-%d}<br>Spend: $%{y:,.2f}<extra></extra>"
+    )
     fig.update_layout(
         template="plotly_white", 
-        margin=dict(l=20, r=20, t=40, b=20),
+        margin=dict(l=20, r=20, t=50, b=20),
         xaxis_title="Date",
-        yaxis_title="Daily Cost ($)"
+        yaxis_title="Daily Spend ($)",
+        yaxis=dict(tickformat="$,.0f")
     )
     return fig
 
 def risk_by_region_heatmap(df: pd.DataFrame) -> go.Figure:
     """
-    Plots a 2D Heatmap of average risk score by provider and region.
+    Plots average composite risk score grouped by provider and region.
     """
-    fig_empty, is_empty = check_empty(df, "Risk Heatmap by Region & Provider")
+    title = "Average Risk Score by Region & Cloud Provider"
+    fig_empty, is_empty = check_empty(df, title)
     if is_empty:
         return fig_empty
         
     try:
-        # Pivot dataframe to get 2D matrix
         pivot_df = df.pivot(index="cloud_provider", columns="region", values="avg_risk_score").fillna(0.0)
         
         fig = go.Figure(data=go.Heatmap(
@@ -95,65 +115,72 @@ def risk_by_region_heatmap(df: pd.DataFrame) -> go.Figure:
             colorscale="YlOrRd",
             zmin=0,
             zmax=100,
-            colorbar=dict(title="Avg Risk")
+            colorbar=dict(title="Avg Risk (0-100)"),
+            hovertemplate="Provider: %{y}<br>Region: %{x}<br>Avg Risk: %{z:.1f}<extra></extra>"
         ))
         
         fig.update_layout(
-            title="Risk Heatmap by Region & Provider",
+            title=title,
             template="plotly_white",
-            margin=dict(l=20, r=20, t=40, b=20),
+            margin=dict(l=20, r=20, t=50, b=20),
             xaxis_title="Region",
             yaxis_title="Cloud Provider"
         )
         return fig
     except Exception:
-        # Fallback if pivot fails (e.g. empty or duplicate elements)
         fig = px.bar(
             df, 
             x="region", 
             y="avg_risk_score", 
             color="cloud_provider",
             barmode="group",
-            title="Average Risk Score by Region",
-            color_discrete_sequence=[COLOR_PRIMARY, COLOR_HIGH, COLOR_MEDIUM]
+            title=title,
+            color_discrete_sequence=[COLOR_PRIMARY, COLOR_HIGH, COLOR_MEDIUM],
+            labels={"avg_risk_score": "Avg Risk Score", "region": "Region", "cloud_provider": "Provider"}
         )
         fig.update_layout(
             template="plotly_white", 
-            margin=dict(l=20, r=20, t=40, b=20),
-            xaxis_title="Region",
-            yaxis_title="Average Risk Score"
+            margin=dict(l=20, r=20, t=50, b=20),
+            yaxis=dict(range=[0, 100])
         )
         return fig
 
 def port_exposure_bar(df: pd.DataFrame) -> go.Figure:
     """
-    Plots frequency distribution of open network ports.
+    Plots frequency distribution of top open network ports across the fleet.
     """
-    fig_empty, is_empty = check_empty(df, "Top Open Port Occurrences")
+    title = "Top 10 Open Port Occurrences (Fleet-Wide)"
+    fig_empty, is_empty = check_empty(df, title)
     if is_empty:
         return fig_empty
         
-    top_df = df.head(10)
+    top_df = df.head(10).copy()
     fig = px.bar(
         top_df, 
         x="port", 
         y="count", 
-        title="Top Open Port Occurrences",
-        color_discrete_sequence=[COLOR_HIGH]
+        title=title,
+        color_discrete_sequence=[COLOR_HIGH],
+        labels={"port": "Port Number", "count": "Instance Count"}
+    )
+    fig.update_traces(
+        hovertemplate="Port: %{x}<br>Open on: %{y} instances<extra></extra>"
     )
     fig.update_layout(
         template="plotly_white", 
-        margin=dict(l=20, r=20, t=40, b=20),
+        margin=dict(l=20, r=20, t=50, b=20),
         xaxis_title="Port Number",
-        yaxis_title="Active Instances Count"
+        yaxis_title="Instance Count",
+        xaxis=dict(type="category")
     )
     return fig
 
 def vulnerability_breakdown_pie(df: pd.DataFrame) -> go.Figure:
     """
-    Plots configurations breakdown aggregates.
+    Plots configurations breakdown aggregates across all instances.
     """
-    fig_empty, is_empty = check_empty(df, "Security Vulnerability Breakdown")
+    title = "Security Vulnerability Breakdown (Fleet-Wide)"
+    fig_empty, is_empty = check_empty(df, title)
     if is_empty:
         return fig_empty
         
@@ -161,27 +188,40 @@ def vulnerability_breakdown_pie(df: pd.DataFrame) -> go.Figure:
         df, 
         values="count", 
         names="vulnerability", 
-        title="Security Vulnerability Breakdown",
-        color_discrete_sequence=[COLOR_CRITICAL, COLOR_HIGH, COLOR_MEDIUM, COLOR_PRIMARY]
+        hole=0.45,
+        title=title,
+        color="vulnerability",
+        color_discrete_map={
+            "Internet Exposed": COLOR_CRITICAL,
+            "Excessive IAM": COLOR_HIGH,
+            "Unencrypted Volume": COLOR_MEDIUM,
+            "Brute-force attempts": COLOR_PRIMARY
+        }
     )
-    fig.update_layout(template="plotly_white", margin=dict(l=20, r=20, t=40, b=20))
+    fig.update_traces(
+        textposition="inside",
+        textinfo="percent+label",
+        hovertemplate="<b>%{label}</b><br>Instances: %{value}<br>Share: %{percent}<extra></extra>"
+    )
+    fig.update_layout(
+        template="plotly_white", 
+        margin=dict(l=20, r=20, t=50, b=20),
+        legend=dict(orientation="h", yanchor="bottom", y=-0.15, xanchor="center", x=0.5)
+    )
     return fig
 
 def security_events_timeline(df: pd.DataFrame) -> go.Figure:
     """
     Plots a daily histogram/timeline of security events grouped by severity.
     """
-    fig_empty, is_empty = check_empty(df, "Security Events Daily Timeline")
+    title = "Security Events Daily Timeline (by Severity)"
+    fig_empty, is_empty = check_empty(df, title)
     if is_empty:
         return fig_empty
         
-    df = df.copy()
-    # Convert timestamps to daily dates
-    df["date"] = pd.to_datetime(df["timestamp"]).dt.date
-    
-    # Group by date and severity and count events
-    grouped = df.groupby(["date", "severity"]).size().reset_index(name="event_count")
-    # Sort chronologically
+    df_copy = df.copy()
+    df_copy["date"] = pd.to_datetime(df_copy["timestamp"]).dt.date
+    grouped = df_copy.groupby(["date", "severity"]).size().reset_index(name="event_count")
     grouped = grouped.sort_values(by="date")
     
     fig = px.bar(
@@ -189,50 +229,66 @@ def security_events_timeline(df: pd.DataFrame) -> go.Figure:
         x="date",
         y="event_count",
         color="severity",
-        title="Security Events Daily Timeline",
+        title=title,
         color_discrete_map={
             "critical": COLOR_CRITICAL,
             "high": COLOR_HIGH,
             "medium": COLOR_MEDIUM,
             "low": COLOR_LOW
         },
-        labels={"event_count": "Events Count", "date": "Date", "severity": "Severity"},
-        barmode="stack"
+        labels={"event_count": "Event Count", "date": "Date", "severity": "Severity"},
+        barmode="stack",
+        category_orders={"severity": ["critical", "high", "medium", "low"]}
     )
-    
+    fig.update_traces(
+        hovertemplate="Date: %{x}<br>Severity: %{fullData.name}<br>Events: %{y}<extra></extra>"
+    )
     fig.update_layout(
         template="plotly_white",
-        margin=dict(l=20, r=20, t=40, b=20),
+        margin=dict(l=20, r=20, t=50, b=20),
         xaxis_title="Date",
         yaxis_title="Events Count",
-        xaxis=dict(tickangle=0)
+        legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5)
     )
     return fig
 
 def cost_by_type_donut(df: pd.DataFrame) -> go.Figure:
     """
-    Spend breakdown donut chart by instance type.
+    Spend breakdown donut chart by instance type across the entire fleet (30-day window).
     """
-    fig_empty, is_empty = check_empty(df, "Monthly Spend by Instance Type")
+    title = "30-Day Fleet Spend by Instance Type"
+    fig_empty, is_empty = check_empty(df, title)
     if is_empty:
         return fig_empty
         
+    cost_col = "monthly_cost" if "monthly_cost" in df.columns else "total_cost"
     fig = px.pie(
         df, 
-        values="total_cost", 
+        values=cost_col, 
         names="instance_type", 
-        hole=0.4, 
-        title="Monthly Spend by Instance Type",
-        color_discrete_sequence=[COLOR_PRIMARY, "#14b8a6", "#2dd4bf", "#5eead4", "#99f6e4"]
+        hole=0.45, 
+        title=title,
+        color_discrete_sequence=[COLOR_PRIMARY, "#14b8a6", "#2dd4bf", "#5eead4", "#99f6e4", "#0f766e", "#115e59"]
     )
-    fig.update_layout(template="plotly_white", margin=dict(l=20, r=20, t=40, b=20))
+    fig.update_traces(
+        textposition="inside",
+        textinfo="percent+label",
+        hovertemplate="<b>%{label}</b><br>Spend: $%{value:,.2f}<br>Share: %{percent}<extra></extra>"
+    )
+    fig.update_layout(
+        template="plotly_white", 
+        margin=dict(l=20, r=20, t=50, b=20),
+        legend=dict(orientation="h", yanchor="bottom", y=-0.15, xanchor="center", x=0.5)
+    )
     return fig
 
 def utilization_scatter(df: pd.DataFrame) -> go.Figure:
     """
-    3D resource utilization bubble plot.
+    Resource utilization scatter plot across all fleet instances.
+    X: CPU Util %, Y: Memory Util %, Bubble Size: Daily Spend ($), Color: Composite Risk Score.
     """
-    fig_empty, is_empty = check_empty(df, "Resource Utilization Scatter")
+    title = "Fleet Resource Utilization vs. Spend & Risk Score"
+    fig_empty, is_empty = check_empty(df, title)
     if is_empty:
         return fig_empty
         
@@ -242,97 +298,114 @@ def utilization_scatter(df: pd.DataFrame) -> go.Figure:
         y="avg_memory_utilization_pct",
         size="avg_daily_cost_usd", 
         color="overall_risk_score",
-        title="Resource Utilization vs. Cost & Risk Score",
+        title=title,
         labels={
-            "avg_cpu_utilization_pct": "Avg CPU Util %", 
-            "avg_memory_utilization_pct": "Avg Memory Util %"
+            "avg_cpu_utilization_pct": "Avg CPU Utilization (%)", 
+            "avg_memory_utilization_pct": "Avg Memory Utilization (%)",
+            "overall_risk_score": "Risk Score (0-100)",
+            "avg_daily_cost_usd": "Daily Cost ($)"
         },
-        color_continuous_scale="Viridis",
+        color_continuous_scale="YlOrRd",
+        range_color=[0, 100],
         hover_name="instance_id"
     )
-    fig.update_layout(template="plotly_white", margin=dict(l=20, r=20, t=40, b=20))
+    fig.update_traces(
+        hovertemplate="<b>%{hovertext}</b><br>Avg CPU: %{x:.1f}%<br>Avg Memory: %{y:.1f}%<br>Risk Score: %{marker.color:.1f}<extra></extra>"
+    )
+    fig.update_layout(
+        template="plotly_white", 
+        margin=dict(l=20, r=20, t=50, b=20),
+        xaxis=dict(range=[0, 100]),
+        yaxis=dict(range=[0, 100])
+    )
     return fig
 
 def recommendation_savings_bar(df: pd.DataFrame) -> go.Figure:
     """
     Plots horizontal bar of top 10 savings recommendations.
     """
-    fig_empty, is_empty = check_empty(df, "Top 10 Savings Opportunities")
+    title = "Top 10 Savings Opportunities by Recommendation ($/mo)"
+    fig_empty, is_empty = check_empty(df, title)
     if is_empty:
         return fig_empty
         
-    top_10 = df.sort_values(by="estimated_savings_usd", ascending=False).head(10)
+    top_10 = df.sort_values(by="estimated_savings_usd", ascending=False).head(10).copy()
     fig = px.bar(
         top_10, 
         x="estimated_savings_usd", 
         y="title", 
         orientation="h",
-        title="Top 10 Savings Opportunities by Recommendation ($)",
+        title=title,
         color="priority",
-        color_discrete_map={
-            "Critical": COLOR_CRITICAL,
-            "High": COLOR_HIGH,
-            "Medium": COLOR_MEDIUM,
-            "Low": COLOR_LOW
-        },
+        color_discrete_map=TIER_COLORS,
+        category_orders={"priority": ["Critical", "High", "Medium", "Low", "Unknown"]},
         labels={
             "estimated_savings_usd": "Monthly Savings ($)", 
-            "title": "Recommendation"
+            "title": "Recommendation Title",
+            "priority": "Priority"
         }
+    )
+    fig.update_traces(
+        hovertemplate="<b>%{y}</b><br>Monthly Savings: $%{x:,.2f}<br>Priority: %{fullData.name}<extra></extra>"
     )
     fig.update_layout(
         template="plotly_white", 
-        margin=dict(l=20, r=20, t=40, b=20),
-        yaxis={"categoryorder": "total ascending"}
+        margin=dict(l=20, r=20, t=50, b=20),
+        yaxis={"categoryorder": "total ascending"},
+        xaxis=dict(tickformat="$,.0f")
     )
     return fig
 
-def utilized_vs_wasted_bar(df: pd.DataFrame) -> go.Figure:
+def utilized_vs_wasted_bar(df_spend: pd.DataFrame) -> go.Figure:
     """
-    Plots a stacked bar chart of utilized vs wasted spend.
+    Plots a stacked bar chart of fleet-wide utilized vs wasted spend ($/Month).
+    Accepts DataFrame with 'total_monthly_spend' and 'wasted_spend' (or 'estimated_savings').
     """
-    fig_empty, is_empty = check_empty(df, "Utilized vs. Wasted Spend ($/Month)")
+    title = "Fleet-Wide Utilized vs. Actionable Wasted Spend ($/Month)"
+    fig_empty, is_empty = check_empty(df_spend, title)
     if is_empty:
         return fig_empty
         
-    total_spend = df["monthly_cost"].sum()
-    total_savings = df["estimated_savings"].sum()
-    utilized_spend = max(0.0, total_spend - total_savings)
+    total_spend = float(df_spend["total_monthly_spend"].iloc[0]) if "total_monthly_spend" in df_spend.columns else 0.0
+    wasted_spend = float(df_spend["wasted_spend"].iloc[0]) if "wasted_spend" in df_spend.columns else 0.0
+    utilized_spend = max(0.0, total_spend - wasted_spend)
     
     plot_df = pd.DataFrame({
-        "Category": ["Monthly Spend Breakdown"],
+        "Category": ["Fleet Monthly Total"],
         "Utilized Spend (Efficient)": [utilized_spend],
-        "Wasted Spend (Potential Savings)": [total_savings]
+        "Actionable Waste (Projected Savings)": [wasted_spend]
     })
     
     fig = px.bar(
         plot_df,
         x="Category",
-        y=["Utilized Spend (Efficient)", "Wasted Spend (Potential Savings)"],
-        title="Utilized vs. Wasted Spend ($/Month)",
+        y=["Utilized Spend (Efficient)", "Actionable Waste (Projected Savings)"],
+        title=title,
         color_discrete_map={
             "Utilized Spend (Efficient)": COLOR_PRIMARY,
-            "Wasted Spend (Potential Savings)": COLOR_CRITICAL
+            "Actionable Waste (Projected Savings)": COLOR_HIGH
         },
         barmode="stack"
     )
-    
+    fig.update_traces(
+        hovertemplate="<b>%{fullData.name}</b><br>Amount: $%{y:,.2f}<extra></extra>"
+    )
     fig.update_layout(
         template="plotly_white",
-        margin=dict(l=20, r=20, t=40, b=20),
+        margin=dict(l=20, r=20, t=50, b=20),
         yaxis_title="Spend ($/Month)",
         xaxis_title="",
-        legend_title="Spend Type",
-        yaxis=dict(tickformat="$,.2f"),
-        xaxis=dict(tickangle=0)
+        legend=dict(title="Spend Classification", orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5),
+        yaxis=dict(tickformat="$,.0f")
     )
     return fig
 
 def cost_forecast_chart(historical_df: pd.DataFrame, forecast_days=90) -> go.Figure:
     """
-    Fits a simple linear trend on historical daily spend and forecasts it forward.
+    Plots historical daily spend and projects an unweighted linear baseline forward.
     """
-    fig_empty, is_empty = check_empty(historical_df, f"Daily Spend & {forecast_days}-Day Forecast")
+    title = f"Fleet Daily Spend & {forecast_days}-Day Linear Baseline Projection"
+    fig_empty, is_empty = check_empty(historical_df, title)
     if is_empty:
         return fig_empty
         
@@ -365,29 +438,29 @@ def cost_forecast_chart(historical_df: pd.DataFrame, forecast_days=90) -> go.Fig
     })
     
     fig = go.Figure()
-    
     fig.add_trace(go.Scatter(
         x=df["date"],
         y=df["daily_cost"],
         mode="lines",
-        name="Historical Spend",
-        line=dict(color=COLOR_PRIMARY, width=2.5)
+        name="Historical Daily Spend",
+        line=dict(color=COLOR_PRIMARY, width=2.5),
+        hovertemplate="Date: %{x|%Y-%m-%d}<br>Historical Spend: $%{y:,.2f}<extra></extra>"
     ))
-    
     fig.add_trace(go.Scatter(
         x=forecast_df["date"],
         y=forecast_df["daily_cost"],
         mode="lines",
-        name=f"{forecast_days}-Day Forecast",
-        line=dict(color=COLOR_HIGH, width=2, dash="dash")
+        name=f"{forecast_days}-Day Linear Trend",
+        line=dict(color=COLOR_HIGH, width=2, dash="dash"),
+        hovertemplate="Date: %{x|%Y-%m-%d}<br>Projected Spend: $%{y:,.2f}<extra></extra>"
     ))
-    
     fig.update_layout(
-        title=f"Daily Spend & {forecast_days}-Day Forecast ($)",
+        title=title,
         template="plotly_white",
-        margin=dict(l=20, r=20, t=40, b=20),
+        margin=dict(l=20, r=20, t=50, b=20),
         xaxis_title="Date",
         yaxis_title="Daily Cost ($)",
-        yaxis=dict(tickformat="$,.2f")
+        yaxis=dict(tickformat="$,.0f"),
+        legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5)
     )
     return fig

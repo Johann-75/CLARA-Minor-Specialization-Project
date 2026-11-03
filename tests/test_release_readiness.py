@@ -3,6 +3,8 @@
 from pathlib import Path
 import configparser
 import subprocess
+import zipfile
+import xml.etree.ElementTree as ET
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -103,4 +105,37 @@ def test_evaluator_markdown_matches_verified_submission_metrics():
     ]
     for verified_claim in required:
         assert verified_claim in combined
+
+
+def _ooxml_text(path: Path) -> str:
+    text_parts: list[str] = []
+    with zipfile.ZipFile(path) as archive:
+        for name in archive.namelist():
+            if not name.endswith(".xml"):
+                continue
+            root = ET.fromstring(archive.read(name))
+            text_parts.extend(node.text or "" for node in root.iter() if node.tag.endswith("}t"))
+    return " ".join(text_parts)
+
+
+def test_final_office_artifacts_do_not_contain_stale_submission_claims():
+    artifacts = [
+        ROOT / "docs" / "final" / "CLARA_Final_Presentation.pptx",
+        ROOT / "docs" / "final" / "CLARA_Final_Project_Report.docx",
+    ]
+    combined = "\n".join(_ooxml_text(path) for path in artifacts)
+
+    stale_claims = [
+        "Date: [Day Month Year]",
+        "100 AWS EC2, 100 Azure VM, 100 GCP Compute Engine",
+        "$220.87 in actionable monthly cost waste",
+        "80% Statement Coverage",
+        "80% total statement coverage",
+    ]
+    for stale_claim in stale_claims:
+        assert stale_claim not in combined
+
+    assert "November 3, 2026" in combined
+    assert "$184.58" in combined
+    assert "67%" in combined
 

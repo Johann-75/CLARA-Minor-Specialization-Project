@@ -135,7 +135,7 @@ Under semantic hardening, invalid or missing scores are explicitly classified as
 ## SECTION 6: Software Engineering, Testing & CI/CD
 
 ### Q19: How did you implement test isolation, and why was it a critical requirement?
-**Answer:** In Phase 1, tests were writing directly to the project root `clara.db` and CSV files, which risked corrupting live demonstration data. We re-engineered the test harness in `tests/conftest.py` using session-scoped pytest `tmp_path` fixtures. All CSV generation and DuckDB operations during testing occur inside an isolated temporary directory. Running the 75 tests leaves the production `clara.db` database bit-for-bit identical (SHA256: `DE271EA91DA0DF6C2A22C9D967684574FBD3F63FE25B6CAB8A5C07C7B91F6BD8`).
+**Answer:** In Phase 1, tests were writing directly to the project root `clara.db` and CSV files, which risked corrupting live demonstration data. We re-engineered the test harness in `tests/conftest.py` using session-scoped pytest `tmp_path` fixtures. All CSV generation and DuckDB operations during testing occur inside an isolated temporary directory. Running the 82 tests leaves the production `clara.db` database bit-for-bit identical (SHA256: `DE271EA91DA0DF6C2A22C9D967684574FBD3F63FE25B6CAB8A5C07C7B91F6BD8`).
 
 ### Q20: What is your test suite pass rate and code coverage?
 **Answer:** The complete test suite passes and achieves **67% statement coverage across all configured runtime application packages**. Tests mock external Gemini calls and execute without an API key. Release-readiness tests additionally verify deployment files, metric semantics, documentation consistency, and repository hygiene.

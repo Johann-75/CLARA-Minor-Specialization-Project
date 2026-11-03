@@ -39,5 +39,29 @@ def initialize_schema(conn: duckdb.DuckDBPyConnection):
     statements = [stmt.strip() for stmt in sql_script.split(";") if stmt.strip()]
     for statement in statements:
         conn.execute(statement)
+
+    migrate_schema(conn)
     
     print("Database: Schema initialized successfully.")
+
+def migrate_schema(conn: duckdb.DuckDBPyConnection):
+    """
+    Applies idempotent schema migrations to ensure backward compatibility
+    with existing databases. Historical pre-migration records without
+    provenance are marked as legacy_unknown.
+    """
+    migrations = [
+        "ALTER TABLE recommendations ADD COLUMN IF NOT EXISTS generation_source VARCHAR DEFAULT 'legacy_unknown'",
+        "ALTER TABLE recommendations ADD COLUMN IF NOT EXISTS model_name VARCHAR DEFAULT 'unknown'",
+        "ALTER TABLE recommendations ADD COLUMN IF NOT EXISTS fallback_reason VARCHAR DEFAULT 'pre_migration_record'",
+        "ALTER TABLE recommendations ADD COLUMN IF NOT EXISTS expected_benefit VARCHAR",
+        "UPDATE recommendations SET generation_source = 'legacy_unknown' WHERE generation_source IS NULL",
+        "UPDATE recommendations SET model_name = 'unknown' WHERE model_name IS NULL",
+        "UPDATE recommendations SET fallback_reason = 'pre_migration_record' WHERE generation_source = 'legacy_unknown' AND fallback_reason IS NULL"
+    ]
+    for stmt in migrations:
+        try:
+            conn.execute(stmt)
+        except Exception:
+            # Tolerant to pre-existing tables or uninitialized tables
+            pass

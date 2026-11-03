@@ -32,8 +32,9 @@ class SyntheticDataGenerator:
     # Noise events count
     NOISE_EVENTS_COUNT = 50
 
-    def __init__(self):
-        self.rng = np.random.default_rng(RANDOM_SEED)
+    def __init__(self, seed=None):
+        effective_seed = RANDOM_SEED if seed is None else seed
+        self.rng = np.random.default_rng(effective_seed)
         self.anomaly_manifest = []
         self.profiles = {}
 

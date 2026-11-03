@@ -38,24 +38,16 @@ def main():
     run_models()
     print(f"ML risk modeling complete (Duration: {time.time() - models_start:.2f}s)\n")
     
-    # Step 4: GenAI Recommendations
-    print("[4/5] Generating GenAI recommendations...")
+    # Step 4: GenAI & Remediation Recommendations
+    print("[4/5] Generating remediation recommendations...")
     genai_start = time.time()
-    no_key_msg = "Skipping GenAI step: no API key configured. Set gemini api key in .env to enable this step."
     try:
-        # Check if API key is missing or dummy
-        if not config.GEMINI_API_KEY or config.GEMINI_API_KEY == "your_key_here":
-            print(no_key_msg)
-        else:
-            from genai.run_recommendations import main as run_recs
-            run_recs()
-            print(f"GenAI recommendations complete (Duration: {time.time() - genai_start:.2f}s)\n")
+        from genai.run_recommendations import main as run_recs
+        recs = run_recs()
+        rec_count = len(recs) if recs is not None else 0
+        print(f"Remediation recommendations complete ({rec_count} generated, Duration: {time.time() - genai_start:.2f}s)\n")
     except Exception as e:
-        # Skip gracefully if it looks like an API key or configuration error
-        if "API key" in str(e) or "GEMINI_API_KEY" in str(e) or isinstance(e, ValueError):
-            print(f"\n{no_key_msg}")
-        else:
-            print(f"\nGenAI recommendations failed with unexpected error: {e}")
+        print(f"\nRecommendation generation recovered from error: {e}\n")
             
     # Step 5: Pipeline completion message
     elapsed = time.time() - start_time

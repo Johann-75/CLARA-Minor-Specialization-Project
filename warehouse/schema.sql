@@ -79,6 +79,10 @@ CREATE TABLE IF NOT EXISTS recommendations (
     estimated_effort_hours DOUBLE,
     status VARCHAR DEFAULT 'pending',
     generated_at TIMESTAMP,
+    generation_source VARCHAR DEFAULT 'legacy_unknown',
+    model_name VARCHAR DEFAULT 'unknown',
+    fallback_reason VARCHAR DEFAULT 'pre_migration_record',
+    expected_benefit VARCHAR,
     FOREIGN KEY (instance_id) REFERENCES cloud_instances(instance_id)
 );
 

@@ -154,7 +154,7 @@ All 5 analytical views (Welcome, Executive Overview, Security Analysis, Cost Ana
 
 CLARA features strict **test isolation**: running pytest executes inside session-scoped temporary directories (`tmp_path`), guaranteeing that your production `clara.db` database and synthetic CSVs remain bit-for-bit unchanged.
 
-### Run All 75 Tests:
+### Run All 82 Tests:
 ```powershell
 pytest -v
 ```

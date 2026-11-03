@@ -125,7 +125,7 @@ Date: November 3, 2026 | Academic Year: 2026–2027
 *Realistic Multi-Provider Simulation with Isolated Ground-Truth Anomaly Corpus*
 
 ### Spoken Delivery Script
-> "Slide 8 illustrates our data pipeline. To evaluate the platform rigorously without exposing proprietary corporate infrastructure or incurring cloud costs, we engineered a realistic multi-cloud generator. It simulates 300 instances evenly split across AWS, Azure, and GCP over a 90-day telemetry window—generating 27,000 daily metrics records. We injected 15 distinct ground-truth anomaly scenarios covering cpu_spike, brute_force, network_exfiltration, misconfiguration, and memory_leak. Crucially, the ground-truth manifest was strictly held out and never accessed during feature extraction or inference, guaranteeing zero data leakage."
+> "Slide 8 illustrates our data pipeline. To evaluate the platform rigorously without exposing proprietary corporate infrastructure or incurring cloud costs, we engineered a realistic multi-cloud generator. The active database contains 300 instances—AWS 155, Azure 88, and GCP 57—over a 90-day telemetry window, generating 27,000 daily metrics records. We injected 15 distinct ground-truth anomaly scenarios covering cpu_spike, brute_force, network_exfiltration, misconfiguration, and memory_leak; the model predicts 17 anomalies. Crucially, the ground-truth manifest was strictly held out and never accessed during feature extraction or inference, guaranteeing zero data leakage."
 
 ### Key Visual Bullets
 - Fleet Diversity: 300 instances in the active database (AWS 155 / Azure 88 / GCP 57) spanning general, compute, and memory instance families.
